@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "diagram_type": "loop-trace",
+  "meta": {
+    "title": "Strands forced structured-output: any vs by-name",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    { "id": "event-loop", "label": "Event Loop", "kind": "loop" },
+    { "id": "model", "label": "Model", "kind": "model" },
+    { "id": "provider", "label": "Provider fmt", "kind": "provider" },
+    { "id": "output-tool", "label": "ProductModel", "kind": "tool" },
+    { "id": "builtin-tool", "label": "Built-in", "kind": "tool" }
+  ],
+  "events": [
+    { "seq": 1, "from": "event-loop", "to": "model", "label": "cycle1: specs=[ProductModel]", "kind": "request" },
+    { "seq": 2, "from": "model", "to": "event-loop", "label": "plain text (no tool call)", "kind": "response" },
+    { "seq": 3, "from": "event-loop", "to": "model", "label": "forced retry: tool_choice=any", "kind": "forced-retry", "detail": "BUG: any only forces when sole tool on wire" },
+    { "seq": 4, "from": "event-loop", "to": "provider", "label": "narrow specs to [ProductModel]", "kind": "request" },
+    { "seq": 5, "from": "provider", "to": "model", "label": "wire: +built-ins, choice=any", "kind": "preempt", "detail": "Gemini/OpenAI/Anthropic append after narrowing" },
+    { "seq": 6, "from": "model", "to": "builtin-tool", "label": "picks built-in, skips output", "kind": "error", "detail": "turn ends without output tool" },
+    { "seq": 7, "from": "event-loop", "to": "model", "label": "FIX: tool_choice=tool{name=ProductModel}", "kind": "forced-retry", "detail": "TS SDK parity, falls back when no spec" },
+    { "seq": 8, "from": "model", "to": "output-tool", "label": "calls ProductModel, retry succeeds", "kind": "success" }
+  ]
+}

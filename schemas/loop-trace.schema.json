@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "loop-trace",
+  "type": "object",
+  "required": ["schema_version", "diagram_type", "meta", "participants", "events"],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "diagram_type": { "type": "string", "const": "loop-trace" },
+    "meta": {
+      "type": "object",
+      "required": ["title", "quality_profile"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "quality_profile": { "type": "string", "const": "showcase" }
+      },
+      "additionalProperties": false
+    },
+    "participants": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "kind": { "type": "string", "enum": ["loop", "model", "provider", "tool", "user"] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["seq", "from", "to", "label", "kind"],
+        "properties": {
+          "seq": { "type": "integer", "minimum": 1 },
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "kind": { "type": "string", "enum": ["request", "response", "forced-retry", "preempt", "error", "success"] },
+          "detail": { "type": "string", "maxLength": 200 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

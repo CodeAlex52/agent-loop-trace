@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "diagram_type": "loop-trace",
+  "meta": {
+    "title": "DSPy bootstrap_trace: partial-credit crash + 0.0 corruption",
+    "quality_profile": "showcase"
+  },
+  "participants": [
+    { "id": "teleprompt", "label": "Bootstrap", "kind": "loop" },
+    { "id": "adapter", "label": "Adapter", "kind": "model" },
+    { "id": "metric", "label": "Metric", "kind": "provider" },
+    { "id": "grpo", "label": "GRPO", "kind": "tool" }
+  ],
+  "events": [
+    { "seq": 1, "from": "teleprompt", "to": "adapter", "label": "forward with partial parse", "kind": "request" },
+    { "seq": 2, "from": "adapter", "to": "teleprompt", "label": "AdapterParseError present/expected", "kind": "response", "detail": "both are lists, not scalars" },
+    { "seq": 3, "from": "teleprompt", "to": "metric", "label": "present / expected -> TypeError", "kind": "error", "detail": "BUG1: list/list crashes, want len/len" },
+    { "seq": 4, "from": "metric", "to": "teleprompt", "label": "score 0.0 for 1-of-2 parse", "kind": "response" },
+    { "seq": 5, "from": "teleprompt", "to": "grpo", "label": "x or penalty rewrites 0.0", "kind": "preempt", "detail": "BUG2: 0.0 falsy, sentinel is None" },
+    { "seq": 6, "from": "grpo", "to": "teleprompt", "label": "best partial becomes worst (-1)", "kind": "error", "detail": "training signal corrupted" },
+    { "seq": 7, "from": "teleprompt", "to": "metric", "label": "FIX tool readers: len/len + is not None", "kind": "forced-retry", "detail": "tool fix in bootstrap_trace + grpo readers" },
+    { "seq": 8, "from": "metric", "to": "grpo", "label": "0.0 preserved, reward correct", "kind": "success" }
+  ]
+}

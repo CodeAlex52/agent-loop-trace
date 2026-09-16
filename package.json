@@ -1,0 +1,12 @@
+{
+  "name": "agent-loop-trace",
+  "version": "0.1.0",
+  "description": "Validated event-loop trace diagrams — archify-style minimal clone for learning",
+  "type": "module",
+  "bin": {
+    "trace": "./bin/trace.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
