@@ -8,6 +8,8 @@
 
 ![hero](./docs/assets/hero.svg)
 
+![rendered trace: Strands forced structured-output](./docs/assets/trace-demo.png)
+
 ## Why
 
 Archify (64k stars) proved `verifiable + beautiful + shareable` hits Trending, but it covers generic architecture. This repo does one thing: **visualize loop forcing / retry / preemption**, each diagram backed by a real PR:

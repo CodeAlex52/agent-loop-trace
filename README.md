@@ -8,6 +8,8 @@
 
 ![hero](./docs/assets/hero.svg)
 
+![渲染示例：Strands forced structured-output](./docs/assets/trace-demo.png)
+
 ## 为什么做
 
 Archify（64k star）证明了 `可验证 + 好看 + 易转发` 能上 Trending，但它是通用架构图。这个项目只做一件事：**loop forcing / retry / preemption 的可视化**，每个图都连回一个真实 PR 和面试故事：
