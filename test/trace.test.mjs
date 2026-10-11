@@ -91,3 +91,21 @@ test("deliver refuses to render an invalid spec", () => {
   const receipt = JSON.parse(r.stdout);
   assert.equal(receipt.ok, false);
 });
+
+test("demo --all renders every example into a gallery dir", () => {
+  const dir = mkdtempSync(join(tmpdir(), "loop-trace-gallery-"));
+  const r = run(["demo", "--all", dir]);
+  assert.equal(r.code, 0);
+  for (const name of ["strands-forcing", "dspy-reward"]) {
+    const html = readFileSync(join(dir, `loop-trace-${name}.html`), "utf8");
+    assert.match(html, /<svg id="diagram"/);
+  }
+});
+
+test("demo (single) still writes loop-trace-demo.html", () => {
+  const dir = mkdtempSync(join(tmpdir(), "loop-trace-demo-"));
+  const r = run(["demo", dir]);
+  assert.equal(r.code, 0);
+  const html = readFileSync(join(dir, "loop-trace-demo.html"), "utf8");
+  assert.match(html, /<svg id="diagram"/);
+});
