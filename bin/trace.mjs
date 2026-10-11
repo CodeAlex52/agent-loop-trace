@@ -158,8 +158,45 @@ const jsonOut = rest.includes("--json");
 const args = rest.filter((a) => a !== "--json");
 
 if (cmd === "doctor") {
-  const out = { ok: true, node: process.version, checks: ["schema present", "renderer present", "no deps"] };
-  console.log(jsonOut ? JSON.stringify(out, null, 2) : "agent-loop-trace ready.");
+  const checks = [];
+  const errors = [];
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major >= 18) {
+    checks.push(`node ${process.version} (>=18 required)`);
+  } else {
+    errors.push(`node ${process.version} is below the required >=18`);
+  }
+
+  try {
+    JSON.parse(readFileSync(resolve(ROOT, "schemas/loop-trace.schema.json"), "utf8"));
+    checks.push("schema present and parses");
+  } catch {
+    errors.push("schemas/loop-trace.schema.json missing or invalid JSON");
+  }
+
+  let exampleCount = 0;
+  try {
+    const names = readdirSync(resolve(ROOT, "examples"))
+      .filter((f) => f.endsWith(".json"))
+      .sort();
+    for (const name of names) {
+      const spec = loadJson(resolve(ROOT, "examples", name));
+      const { errors: checkErrors } = validateSpec(spec);
+      if (checkErrors > 0) errors.push(`${name} fails ${checkErrors} validation check(s)`);
+      exampleCount += 1;
+    }
+    if (exampleCount > 0 && errors.length === 0) {
+      checks.push(`${exampleCount} example spec(s) validate`);
+    }
+  } catch {
+    errors.push("examples/ directory missing or unreadable");
+  }
+
+  const out = { ok: errors.length === 0, node: process.version, examples: exampleCount, checks: errors.length ? errors : checks };
+  if (jsonOut) console.log(JSON.stringify(out, null, 2));
+  else if (errors.length) console.error(`doctor found ${errors.length} issue(s):\n- ${errors.join("\n- ")}`);
+  else console.log(`agent-loop-trace ready. ${exampleCount} example(s) validated.`);
+  process.exit(errors.length === 0 ? 0 : 1);
 } else if (cmd === "validate") {
   const [input] = args;
   if (!input) {
