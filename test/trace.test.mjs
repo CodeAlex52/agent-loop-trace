@@ -12,17 +12,27 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BIN = join(ROOT, "bin", "trace.mjs");
 const EXAMPLES = ["examples/strands-forcing.json", "examples/dspy-reward.json"];
 
-function run(args) {
+function run(args, opts = {}) {
   try {
     const stdout = execFileSync(process.execPath, [BIN, ...args], {
       encoding: "utf8",
       cwd: ROOT,
+      ...opts,
     });
     return { code: 0, stdout };
   } catch (error) {
     return { code: error.status ?? 1, stdout: String(error.stdout ?? "") };
   }
 }
+
+test("validate reads a spec from stdin via '-'", () => {
+  const input = readFileSync(join(ROOT, EXAMPLES[0]), "utf8");
+  const r = run(["validate", "-", "--json"], { input });
+  assert.equal(r.code, 0);
+  const receipt = JSON.parse(r.stdout);
+  assert.equal(receipt.ok, true);
+  assert.equal(receipt.input, "<stdin>");
+});
 
 test("doctor reports a ready toolchain", () => {
   const r = run(["doctor", "--json"]);

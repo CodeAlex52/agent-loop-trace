@@ -10,6 +10,16 @@ function loadJson(p) {
   return JSON.parse(readFileSync(p, "utf8"));
 }
 
+// "-" streams the spec from stdin so agent pipelines can pipe IR directly:
+//   cat spec.json | node bin/trace.mjs validate - --json
+function readSpecRaw(inputPath) {
+  return inputPath === "-" ? readFileSync(0) : readFileSync(resolve(inputPath));
+}
+
+function specLabel(inputPath) {
+  return inputPath === "-" ? "<stdin>" : resolve(inputPath);
+}
+
 function validateSpec(spec) {
   const checks = [];
   const errors = [];
@@ -152,16 +162,24 @@ if (cmd === "doctor") {
   console.log(jsonOut ? JSON.stringify(out, null, 2) : "agent-loop-trace ready.");
 } else if (cmd === "validate") {
   const [input] = args;
-  const spec = loadJson(resolve(input));
+  if (!input) {
+    console.error("usage: trace.mjs validate <spec.json | -> [--json]");
+    process.exit(2);
+  }
+  const spec = JSON.parse(readSpecRaw(input).toString("utf8"));
   const { checks, errors, warnings } = validateSpec(spec);
-  const receipt = { schemaVersion: 1, ok: errors === 0, command: "validate", input: resolve(input), checks, composition: { profile: "showcase", status: errors === 0 ? "pass" : "fail", summary: { errors, warnings } } };
+  const receipt = { schemaVersion: 1, ok: errors === 0, command: "validate", input: specLabel(input), checks, composition: { profile: "showcase", status: errors === 0 ? "pass" : "fail", summary: { errors, warnings } } };
   if (jsonOut) console.log(JSON.stringify(receipt, null, 2));
   else console.log(errors === 0 ? `pass ${checks.length}/${checks.length}` : `fail ${errors} checks`);
   process.exit(errors === 0 ? 0 : 1);
 } else if (cmd === "deliver") {
   const [input, output] = args;
-  const inAbs = resolve(input), outAbs = resolve(output);
-  const raw = readFileSync(inAbs);
+  if (!input || !output) {
+    console.error("usage: trace.mjs deliver <spec.json | -> <out.html>");
+    process.exit(2);
+  }
+  const inAbs = specLabel(input), outAbs = resolve(output);
+  const raw = readSpecRaw(input);
   const spec = JSON.parse(raw.toString("utf8"));
   const { checks, errors, warnings } = validateSpec(spec);
   if (errors > 0) {
@@ -184,6 +202,6 @@ if (cmd === "doctor") {
   writeFileSync(resolve(dir, "loop-trace-demo.html"), renderHtml(spec, { checks }));
   console.log(`Demo ready: ${resolve(dir, "loop-trace-demo.html")}`);
 } else {
-  console.error("usage: trace.mjs [doctor|validate|deliver|demo] ...");
+  console.error('usage: trace.mjs [doctor|validate|deliver|demo] ...  (input "-" reads the spec from stdin)');
   process.exit(2);
 }
