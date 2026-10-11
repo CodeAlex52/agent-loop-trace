@@ -4,7 +4,7 @@
 
 `SKILL.md → JSON IR → validate 5项 → deliver 单文件HTML`，学 Archify 链路的最小复刻，切更窄的 Agent 调试痛点。
 
-[English](./README_EN.md) · MIT · `node >= 18`
+[English](./README_EN.md) · MIT · `node >= 18` · [![CI](https://github.com/CodeAlex52/agent-loop-trace/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeAlex52/agent-loop-trace/actions/workflows/ci.yml)
 
 ![hero](./docs/assets/hero.svg)
 
@@ -25,6 +25,8 @@ node bin/trace.mjs validate examples/strands-forcing.json --json
 node bin/trace.mjs deliver examples/strands-forcing.json /tmp/loop-trace/demo.html --json
 # 用浏览器打开 /tmp/loop-trace/demo.html：T 切主题，E 导出 PNG
 ```
+
+零依赖回归测试：`npm test`（Node 内置 node:test，覆盖 doctor / validate / deliver / 坏样本拒绝）。
 
 在线例子（本地打开）：`examples/rendered/strands.html`、`examples/rendered/dspy.html`
 
