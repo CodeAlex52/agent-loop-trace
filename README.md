@@ -25,6 +25,9 @@ node bin/trace.mjs validate examples/strands-forcing.json --json
 node bin/trace.mjs deliver examples/strands-forcing.json /tmp/loop-trace/demo.html --json
 # 用浏览器打开 /tmp/loop-trace/demo.html：T 切主题，E 导出 PNG
 
+# 一次渲染全部示例到画廊目录
+node bin/trace.mjs demo --all /tmp/loop-trace/gallery
+
 # 管道友好：输入传 "-" 即可从 stdin 读 IR
 cat examples/strands-forcing.json | node bin/trace.mjs validate - --json
 ```

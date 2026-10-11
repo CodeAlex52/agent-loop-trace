@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // agent-loop-trace v0.1 — zero-dep validate + deliver, mirrors archify chain.
-import { readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, renameSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 
@@ -195,12 +195,37 @@ if (cmd === "doctor") {
   const receipt = { schemaVersion: 1, ok: true, command: "deliver", input: inAbs, output: outAbs, specification: { sha256: sha256Bytes(raw), bytes: raw.length }, artifact: { sha256: sha256Bytes(Buffer.from(html)), bytes: Buffer.byteLength(html) }, validation: { checksPassed: checks.length, checkCount: checks.length, compositionStatus: "pass", errors: 0, warnings: 0 } };
   console.log(JSON.stringify(receipt, null, 2));
 } else if (cmd === "demo") {
-  const [dir] = args;
+  const all = args.includes("--all");
+  const [dir] = args.filter((a) => a !== "--all");
+  if (!dir) {
+    console.error("usage: trace.mjs demo <dir> [--all]");
+    process.exit(2);
+  }
   mkdirSync(resolve(dir), { recursive: true });
-  const spec = loadJson(resolve(ROOT, "examples/strands-forcing.json"));
-  const { checks } = validateSpec(spec);
-  writeFileSync(resolve(dir, "loop-trace-demo.html"), renderHtml(spec, { checks }));
-  console.log(`Demo ready: ${resolve(dir, "loop-trace-demo.html")}`);
+  let rendered = 0;
+  if (all) {
+    const names = readdirSync(resolve(ROOT, "examples"))
+      .filter((f) => f.endsWith(".json"))
+      .sort();
+    for (const name of names) {
+      const spec = loadJson(resolve(ROOT, "examples", name));
+      const { checks } = validateSpec(spec);
+      const out = resolve(dir, `loop-trace-${name.replace(/\.json$/, "")}.html`);
+      writeFileSync(out, renderHtml(spec, { checks }));
+      console.log(`Demo ready: ${out}`);
+      rendered += 1;
+    }
+  } else {
+    const spec = loadJson(resolve(ROOT, "examples/strands-forcing.json"));
+    const { checks } = validateSpec(spec);
+    writeFileSync(resolve(dir, "loop-trace-demo.html"), renderHtml(spec, { checks }));
+    console.log(`Demo ready: ${resolve(dir, "loop-trace-demo.html")}`);
+    rendered = 1;
+  }
+  if (rendered === 0) {
+    console.error("no example specs found under examples/");
+    process.exit(1);
+  }
 } else {
   console.error('usage: trace.mjs [doctor|validate|deliver|demo] ...  (input "-" reads the spec from stdin)');
   process.exit(2);
