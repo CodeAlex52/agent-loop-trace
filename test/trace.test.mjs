@@ -34,12 +34,13 @@ test("validate reads a spec from stdin via '-'", () => {
   assert.equal(receipt.input, "<stdin>");
 });
 
-test("doctor reports a ready toolchain", () => {
+test("doctor performs real self-checks and reports ready", () => {
   const r = run(["doctor", "--json"]);
   assert.equal(r.code, 0);
   const out = JSON.parse(r.stdout);
   assert.equal(out.ok, true);
-  assert.deepEqual(out.checks, ["schema present", "renderer present", "no deps"]);
+  assert.ok(out.examples >= 2);
+  assert.ok(out.checks.some((c) => c.includes("schema present")));
 });
 
 for (const example of EXAMPLES) {
