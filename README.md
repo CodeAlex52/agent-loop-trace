@@ -24,6 +24,9 @@ node bin/trace.mjs doctor
 node bin/trace.mjs validate examples/strands-forcing.json --json
 node bin/trace.mjs deliver examples/strands-forcing.json /tmp/loop-trace/demo.html --json
 # 用浏览器打开 /tmp/loop-trace/demo.html：T 切主题，E 导出 PNG
+
+# 管道友好：输入传 "-" 即可从 stdin 读 IR
+cat examples/strands-forcing.json | node bin/trace.mjs validate - --json
 ```
 
 零依赖回归测试：`npm test`（Node 内置 node:test，覆盖 doctor / validate / deliver / 坏样本拒绝）。
